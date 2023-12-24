@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="ISO-8859-1">
+<title>Cadastro Usuario</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+	rel="stylesheet"
+	integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+	crossorigin="anonymous">
+	
+	<style type="text/css" >
+	
+	html{
+		margin-left: 5%;
+		margin-right: 5%;
+		margin-top: 5%;
+	}
+	
+	
+	</style>
+</head>
+<body>
+
+	<h2>Informações de cadastro</h2>
+
+	<form action="" id="cadastroUser">
+		<div>
+			<div class="mb-3">
+				<label for="id" class="form-label">Identificação:</label> <input
+					class="form-control" id="id" placeholder="ID"
+					aria-label="Disabled input example" disabled>
+			</div>
+
+			<div class="mb-3">
+				<label for="nome" class="form-label">Informe o nome:</label>
+				<input type="text" class="form-control" id="nome"
+					placeholder="Nome">
+			</div>
+
+			<div class="mb-3">
+				<label for="senha" class="form-label">Informe uma senha:</label>
+				<input type="password" class="form-control" id="senha"
+					placeholder="Senha">
+			</div>
+			<div class="col-auto">
+				<span id="passwordHelpInline" class="form-text"> Deve ter de
+					8 a 20 caracteres. </span>
+			</div>
+
+			<div></div>
+		</div>
+
+	</form>
+	<button type="button" class="btn btn-secondary" onclick="document.getElementById('cadastroUser').reset()">Limpar</button>
+	<button type="button" class="btn btn-success" onclick="salvarUser()">Salvar</button>
+	<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#pesquisaModal" data-bs-whatever="@mdo">Pesquisar</button>
+	<button type="button" class="btn btn-danger" onclick="excluirUserTela()" >Excluir</button>
+	
+	<p><a type="button" class="navbar-brand" href="index.html" >Efetue seu login!!</a></p>
+	
+<!-- Corpo Modal -->
+
+<div class="modal fade" id="pesquisaModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Pesquisar Usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="buscaUsuario" class="col-form-label">Usuario:</label>
+            <input type="text" class="form-control" id="buscaUsuario">
+          </div>
+          <button type="button" class="btn btn-primary" onclick="buscarUsuario()" >Pesquisar</button>
+        </form>
+					<div style="height: 300px; overflow: scroll;">
+					<table class="table" id="tabelaResultado">
+						<thead>
+							<tr>
+								<th scope="col">ID</th>
+								<th scope="col">Nome</th>
+								<th scope="col">Editar</th>
+								<th scope="col">Deletar</th>
+							</tr>
+						</thead>
+						<tbody>
+
+						</tbody>
+					</table>
+					</div>
+		</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        
+      </div>
+    </div>
+  </div>
+</div>
+ 
+ <script type="text/javascript">
+ function salvarUser(){
+	
+	var id = $("#id").val();
+	var nome = $("#nome").val();
+	var senha = $("#senha").val();
+	
+	if(nome == null || nome != null && nome.trim()== ''){
+		$("#nome").focus();
+		alert('Informe o nome!');
+		return;
+	}
+	
+	if(senha == null || senha != null && senha.trim()== ''){
+		$("#senha").focus();
+		alert('Informe uma senha!');
+		return;
+	}
+	 
+	$.ajax({
+		method : "POST",
+		url : "salvarUser",
+		data : JSON.stringify({
+			id : id,
+			nome : nome,
+			senha : senha
+		}),
+		contentType : "application/json; charset=utf-8",
+		success : function(response) {
+			$("#id").val(response.id);
+			alert("Gravou com sucesso!");
+		}
+	}).fail(function(xhr, status, errorThrown) {
+		alert("Erro ao salvar usuario: " + xhr.responseText);
+	});
+	 
+ }
+ 
+ function buscarUsuario(){
+	 var nome = $("#buscaUsuario").val();
+	 
+	 if(nome != null && nome.trim() != ''){
+		 
+		 $.ajax({
+				method : "GET",
+				url : "buscarPorNome",
+				data : "name=" + nome ,
+				success : function(response) {
+					
+					$('#tabelaResultado > tbody > tr').remove();
+					
+					for(var i = 0; i < response.length; i++){
+						$('#tabelaResultado > tbody').append('<tr id="'+response[i].id+'" ><td>'+response[i].id+'</td><td>'
+																	   +response[i].nome+'</td><td><button type="button" class="btn btn-secondary" onclick="edicao('+response[i].id+')">Editar</button></td><td><button type="button" class="btn btn-secondary" onclick="deletar('+response[i].id+')">Deletar</button></td></tr>');
+					}
+					
+				}
+			}).fail(function(xhr, status, errorThrown) {
+				alert("Erro ao buscar usuario: " + xhr.responseText);
+			});
+		  }
+	  }
+ 
+function edicao(id){
+	 
+	 $.ajax({
+			method : "GET",
+			url : "buscarUserId",
+			data : "idUser=" + id ,
+			success : function(response) {
+			
+				$("#id").val(response.id);
+				$("#nome").val(response.nome);
+				$("#senha").val(response.senha);
+				
+				$('#pesquisaModal').modal('hide');
+				
+				
+				}
+		}).fail(function(xhr, status, errorThrown) {
+			alert("Erro ao buscar identificação do usuario: " + xhr.responseText);
+		});
+	 
+	 }
+	 
+	
+		function deletar(id) {
+			if(id == null || id != null && id == ''){
+				
+				alert('Informe um usuario para excluir.');
+				return;
+			}
+			
+			if (confirm('Deseja realmente deletar?')) {
+
+				$.ajax({
+					method : "DELETE",
+					url : "deletarUser",
+					data : "idUser=" + id,
+					success : function(response) {
+
+						$('#' + id).remove();
+
+						alert(response);
+
+					}
+				}).fail(function(xhr, status, errorThrown) {
+					alert("Erro ao deletar usuario: " + xhr.responseText);
+				});
+
+			}
+
+		}
+		
+		
+		function excluirUserTela() {
+			var id = $("#id").val();
+			
+			deletar(id);
+			
+			document.getElementById('cadastroUser').reset();
+
+		}
+	</script>
+
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+		integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+		crossorigin="anonymous"></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+		crossorigin="anonymous"></script>
+</body>
+</html>
